@@ -1,0 +1,47 @@
+{
+  "model_type": "simplified_regression",
+  "version": "1.0.0",
+  "description": "Mod\u00e8le simplifi\u00e9 pour pr\u00e9dire la consommation \u00e9nerg\u00e9tique des LLM",
+  "performance": {
+    "r2": 0.9841444305580973,
+    "mae": 1.4110168588456909e-05,
+    "mse": 5.012670965683148e-09
+  },
+  "energy_per_token": {
+    "2b": 1.892007898871639e-07,
+    "7b": 4.596022413885262e-07,
+    "70b": 7.753070435711112e-06
+  },
+  "base_energy": {
+    "2b": 5.134745427286525e-05,
+    "7b": 0.00013834869860335,
+    "8b": 6e-05,
+    "70b": 0.0019451793011876
+  },
+  "model_mappings": {
+    "gpt-4": "70b",
+    "gpt-4-turbo": "70b",
+    "gpt-4o": "70b",
+    "gpt-3.5-turbo": "7b",
+    "claude-3-opus": "70b",
+    "claude-3-sonnet": "70b",
+    "claude-3-haiku": "7b",
+    "claude-3.5-sonnet": "70b",
+    "gemini-pro": "70b",
+    "gemini-1.5-pro": "70b",
+    "gemini-1.5-flash": "8b",
+    "llama-2-7b": "7b",
+    "llama-2-13b": "7b",
+    "llama-2-70b": "70b",
+    "llama-3-8b": "8b",
+    "llama-3-70b": "70b",
+    "mistral-7b": "7b",
+    "mistral-8x7b": "70b",
+    "mixtral-8x7b": "70b",
+    "codellama-7b": "7b",
+    "codellama-13b": "7b",
+    "codellama-34b": "70b",
+    "codellama-70b": "70b"
+  },
+  "default_size": "7b"
+}

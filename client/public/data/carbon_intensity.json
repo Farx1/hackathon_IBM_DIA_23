@@ -1,0 +1,165 @@
+{
+  "metadata": {
+    "description": "Facteurs d'émission CO₂ de l'électricité par pays (gCO₂/kWh)",
+    "source": "Ember Global Electricity Review 2024, IEA, Our World in Data",
+    "year": 2024,
+    "unit": "gCO2/kWh"
+  },
+  "countries": {
+    "global_average": {
+      "name": "Moyenne mondiale",
+      "intensity": 480,
+      "mix": "Charbon 36%, Gaz 23%, Hydro 16%, Nucléaire 10%, Éolien 8%, Solaire 5%, Autres 2%"
+    },
+    "FR": {
+      "name": "France",
+      "intensity": 52,
+      "mix": "Nucléaire 65%, Hydro 12%, Éolien 10%, Solaire 5%, Gaz 6%, Autres 2%"
+    },
+    "US": {
+      "name": "États-Unis",
+      "intensity": 369,
+      "mix": "Gaz 43%, Charbon 16%, Nucléaire 18%, Éolien 10%, Hydro 6%, Solaire 5%, Autres 2%"
+    },
+    "CN": {
+      "name": "Chine",
+      "intensity": 581,
+      "mix": "Charbon 62%, Hydro 15%, Éolien 9%, Solaire 5%, Nucléaire 5%, Gaz 3%, Autres 1%"
+    },
+    "DE": {
+      "name": "Allemagne",
+      "intensity": 329,
+      "mix": "Éolien 27%, Charbon 26%, Gaz 16%, Solaire 12%, Nucléaire 6%, Hydro 3%, Autres 10%"
+    },
+    "GB": {
+      "name": "Royaume-Uni",
+      "intensity": 233,
+      "mix": "Gaz 40%, Éolien 29%, Nucléaire 13%, Solaire 5%, Biomasse 6%, Hydro 2%, Autres 5%"
+    },
+    "IN": {
+      "name": "Inde",
+      "intensity": 632,
+      "mix": "Charbon 75%, Hydro 10%, Éolien 6%, Solaire 5%, Gaz 2%, Nucléaire 2%"
+    },
+    "JP": {
+      "name": "Japon",
+      "intensity": 462,
+      "mix": "Gaz 37%, Charbon 31%, Hydro 8%, Nucléaire 7%, Solaire 10%, Éolien 1%, Autres 6%"
+    },
+    "CA": {
+      "name": "Canada",
+      "intensity": 110,
+      "mix": "Hydro 60%, Nucléaire 15%, Gaz 11%, Éolien 6%, Charbon 6%, Solaire 1%, Autres 1%"
+    },
+    "AU": {
+      "name": "Australie",
+      "intensity": 510,
+      "mix": "Charbon 47%, Gaz 21%, Éolien 12%, Solaire 14%, Hydro 5%, Autres 1%"
+    },
+    "BR": {
+      "name": "Brésil",
+      "intensity": 82,
+      "mix": "Hydro 64%, Éolien 13%, Biomasse 9%, Gaz 10%, Solaire 3%, Autres 1%"
+    },
+    "ES": {
+      "name": "Espagne",
+      "intensity": 185,
+      "mix": "Éolien 24%, Nucléaire 20%, Hydro 11%, Gaz 24%, Solaire 16%, Charbon 2%, Autres 3%"
+    },
+    "IT": {
+      "name": "Italie",
+      "intensity": 281,
+      "mix": "Gaz 49%, Hydro 15%, Solaire 10%, Éolien 8%, Biomasse 6%, Charbon 5%, Autres 7%"
+    },
+    "NL": {
+      "name": "Pays-Bas",
+      "intensity": 354,
+      "mix": "Gaz 60%, Éolien 18%, Charbon 9%, Biomasse 6%, Solaire 5%, Nucléaire 1%, Autres 1%"
+    },
+    "SE": {
+      "name": "Suède",
+      "intensity": 13,
+      "mix": "Hydro 45%, Nucléaire 30%, Éolien 20%, Biomasse 4%, Autres 1%"
+    },
+    "NO": {
+      "name": "Norvège",
+      "intensity": 18,
+      "mix": "Hydro 92%, Éolien 6%, Gaz 1%, Autres 1%"
+    },
+    "CH": {
+      "name": "Suisse",
+      "intensity": 24,
+      "mix": "Hydro 58%, Nucléaire 33%, Solaire 5%, Éolien 2%, Autres 2%"
+    },
+    "PL": {
+      "name": "Pologne",
+      "intensity": 652,
+      "mix": "Charbon 70%, Éolien 11%, Gaz 8%, Biomasse 5%, Hydro 2%, Solaire 2%, Autres 2%"
+    },
+    "BE": {
+      "name": "Belgique",
+      "intensity": 143,
+      "mix": "Nucléaire 46%, Gaz 29%, Éolien 14%, Solaire 6%, Biomasse 4%, Autres 1%"
+    },
+    "AT": {
+      "name": "Autriche",
+      "intensity": 89,
+      "mix": "Hydro 60%, Éolien 13%, Gaz 17%, Biomasse 7%, Solaire 2%, Autres 1%"
+    },
+    "DK": {
+      "name": "Danemark",
+      "intensity": 109,
+      "mix": "Éolien 56%, Biomasse 18%, Gaz 13%, Solaire 6%, Charbon 5%, Autres 2%"
+    },
+    "FI": {
+      "name": "Finlande",
+      "intensity": 71,
+      "mix": "Nucléaire 34%, Hydro 23%, Biomasse 19%, Éolien 12%, Gaz 7%, Charbon 4%, Autres 1%"
+    },
+    "PT": {
+      "name": "Portugal",
+      "intensity": 198,
+      "mix": "Éolien 28%, Hydro 25%, Gaz 29%, Solaire 7%, Biomasse 7%, Charbon 2%, Autres 2%"
+    },
+    "GR": {
+      "name": "Grèce",
+      "intensity": 470,
+      "mix": "Gaz 42%, Charbon 13%, Éolien 22%, Hydro 11%, Solaire 10%, Autres 2%"
+    },
+    "IE": {
+      "name": "Irlande",
+      "intensity": 295,
+      "mix": "Gaz 52%, Éolien 36%, Charbon 4%, Hydro 3%, Biomasse 3%, Autres 2%"
+    },
+    "NZ": {
+      "name": "Nouvelle-Zélande",
+      "intensity": 95,
+      "mix": "Hydro 57%, Géothermie 18%, Éolien 6%, Gaz 16%, Charbon 2%, Autres 1%"
+    },
+    "KR": {
+      "name": "Corée du Sud",
+      "intensity": 436,
+      "mix": "Charbon 35%, Gaz 29%, Nucléaire 27%, Éolien 2%, Solaire 5%, Hydro 1%, Autres 1%"
+    },
+    "MX": {
+      "name": "Mexique",
+      "intensity": 421,
+      "mix": "Gaz 62%, Hydro 11%, Charbon 8%, Éolien 7%, Nucléaire 4%, Solaire 5%, Autres 3%"
+    },
+    "ZA": {
+      "name": "Afrique du Sud",
+      "intensity": 750,
+      "mix": "Charbon 86%, Éolien 5%, Hydro 4%, Solaire 3%, Nucléaire 2%"
+    },
+    "RU": {
+      "name": "Russie",
+      "intensity": 398,
+      "mix": "Gaz 49%, Hydro 19%, Nucléaire 20%, Charbon 11%, Autres 1%"
+    },
+    "TR": {
+      "name": "Turquie",
+      "intensity": 418,
+      "mix": "Gaz 37%, Charbon 37%, Hydro 15%, Éolien 10%, Solaire 1%"
+    }
+  }
+}

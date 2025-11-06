@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Track Sustainability - CO₂ Tracker</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 400px;
+      min-height: 500px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      padding: 0;
+    }
+
+    .header {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      padding: 20px;
+      text-align: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .header h1 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .header p {
+      font-size: 12px;
+      opacity: 0.9;
+    }
+
+    .content {
+      padding: 20px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      color: #333;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .card h2 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #667eea;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .stat:last-child {
+      border-bottom: none;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: #666;
+    }
+
+    .stat-value {
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .stat-value.highlight {
+      color: #667eea;
+      font-size: 24px;
+    }
+
+    .stat-value.co2 {
+      color: #e74c3c;
+    }
+
+    .stat-unit {
+      font-size: 11px;
+      color: #999;
+      margin-left: 4px;
+    }
+
+    .settings {
+      margin-top: 16px;
+    }
+
+    .settings label {
+      display: block;
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+
+    .settings select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 13px;
+      background: white;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+
+    .settings select:hover {
+      border-color: #667eea;
+    }
+
+    .settings select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 12px;
+    }
+
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #5568d3;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-secondary {
+      background: #f8f9fa;
+      color: #666;
+    }
+
+    .btn-secondary:hover {
+      background: #e9ecef;
+    }
+
+    .status {
+      text-align: center;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+
+    .status.active {
+      background: rgba(46, 213, 115, 0.2);
+      color: #2ed573;
+    }
+
+    .status.inactive {
+      background: rgba(255, 107, 107, 0.2);
+      color: #ff6b6b;
+    }
+
+    .equivalence {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+      padding: 16px;
+      border-radius: 12px;
+      margin-top: 16px;
+      text-align: center;
+    }
+
+    .equivalence-title {
+      font-size: 12px;
+      opacity: 0.9;
+      margin-bottom: 8px;
+    }
+
+    .equivalence-value {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .footer {
+      padding: 16px 20px;
+      text-align: center;
+      font-size: 11px;
+      opacity: 0.8;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .spinner {
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top: 3px solid white;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .icon {
+      display: inline-block;
+      margin-right: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🌱 Track Sustainability</h1>
+    <p>CO₂ Impact Tracker for LLMs</p>
+  </div>
+
+  <div id="loading" class="loading">
+    <div class="spinner"></div>
+    <p>Chargement...</p>
+  </div>
+
+  <div id="main-content" class="content" style="display: none;">
+    <div id="status" class="status inactive">
+      ⚠️ Aucune conversation détectée
+    </div>
+
+    <div class="card">
+      <h2>📝 Input actuel</h2>
+      <div class="stat">
+        <span class="stat-label">Tokens (prompt)</span>
+        <span class="stat-value" id="current-prompt-tokens">0</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Tokens (réponse)</span>
+        <span class="stat-value" id="current-response-tokens">0</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Énergie consommée</span>
+        <span class="stat-value" id="current-energy">0.000</span>
+        <span class="stat-unit">J</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">CO₂ émis</span>
+        <span class="stat-value co2 highlight" id="current-co2">0.00</span>
+        <span class="stat-unit">g</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Source prédiction</span>
+        <span class="stat-value" id="current-prediction-source" style="font-size: 12px;">-</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🌍 Total cumulé</h2>
+      <div class="stat">
+        <span class="stat-label">Total requêtes</span>
+        <span class="stat-value" id="total-requests">0</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Total tokens</span>
+        <span class="stat-value" id="total-tokens">0</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Total CO₂</span>
+        <span class="stat-value co2 highlight" id="total-co2">0.00</span>
+        <span class="stat-unit">g</span>
+      </div>
+    </div>
+
+    <div class="equivalence">
+      <div class="equivalence-title">💡 Équivalent CO₂</div>
+      <div class="equivalence-value" id="equivalence">-</div>
+    </div>
+
+    <div class="card settings">
+      <h2>⚙️ Paramètres</h2>
+      <label for="country-select">Mix énergétique</label>
+      <select id="country-select">
+        <option value="global_average">🌍 Moyenne mondiale (480 gCO₂/kWh)</option>
+        <option value="FR">🇫🇷 France (52 gCO₂/kWh)</option>
+        <option value="US">🇺🇸 États-Unis (369 gCO₂/kWh)</option>
+        <option value="CN">🇨🇳 Chine (581 gCO₂/kWh)</option>
+        <option value="DE">🇩🇪 Allemagne (329 gCO₂/kWh)</option>
+        <option value="GB">🇬🇧 Royaume-Uni (233 gCO₂/kWh)</option>
+        <option value="CA">🇨🇦 Canada (110 gCO₂/kWh)</option>
+        <option value="SE">🇸🇪 Suède (13 gCO₂/kWh)</option>
+        <option value="NO">🇳🇴 Norvège (18 gCO₂/kWh)</option>
+      </select>
+      
+      <button class="btn btn-secondary" id="scan-btn" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+        🔍 Scanner la conversation actuelle
+      </button>
+      
+      <button class="btn btn-secondary" id="reset-btn" style="margin-top: 12px;">🔄 Réinitialiser les statistiques</button>
+      
+      <button class="btn btn-primary" id="dashboard-btn" style="margin-top: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        📊 Ouvrir le Dashboard Analytics
+      </button>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>Données basées sur Ember Global Electricity Review 2024</p>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
