@@ -7,6 +7,8 @@
   <script src="chart.umd.min.js"></script>
   <!-- Charger init-scripts.js qui chargera les autres scripts via chrome.runtime.getURL() -->
   <script src="init-scripts.js"></script>
+  <!-- Charger les améliorations du dashboard -->
+  <script src="dashboard-enhancements.js"></script>
   <style>
     * {
       margin: 0;
@@ -289,9 +291,7 @@
     <div class="nav-tabs">
       <div class="nav-tab active" data-tab="overview">📊 Vue d'ensemble</div>
       <div class="nav-tab" data-tab="predictions">🔮 Prédictions ML</div>
-      <div class="nav-tab" data-tab="models">🤖 Modèles</div>
       <div class="nav-tab" data-tab="compare">⚖️ Comparaison Temps Réel</div>
-      <div class="nav-tab" data-tab="hardware">💻 GPUs/Hardware</div>
       <div class="nav-tab" data-tab="energy">⚡ Mix Énergétique</div>
       <div class="nav-tab" data-tab="config">⚙️ Configuration</div>
     </div>
@@ -300,127 +300,77 @@
     <div id="overview" class="tab-content active">
       <div class="loading" id="overview-loading">
         <div class="spinner"></div>
-        <p>Chargement des données depuis Watsonx...</p>
+        <p>Chargement des données...</p>
       </div>
       <div id="overview-content" style="display: none;">
         <div class="stats-grid">
           <div class="stat-card">
-            <h3>Total Mesures</h3>
+            <h3>Total Échanges</h3>
             <div class="value" id="total-measures">-</div>
           </div>
           <div class="stat-card">
-            <h3>Modèles Analysés</h3>
-            <div class="value" id="total-models">-</div>
-          </div>
-          <div class="stat-card">
-            <h3>Types de Hardware</h3>
-            <div class="value" id="total-hardware">-</div>
+            <h3>Énergie Totale</h3>
+            <div class="value" id="total-energy">-</div>
+            <span class="unit">kWh</span>
           </div>
           <div class="stat-card">
             <h3>CO₂ Émis (Total)</h3>
             <div class="value" id="total-co2">-</div>
-            <span class="unit">g</span>
+            <span class="unit">kg</span>
+          </div>
+          <div class="stat-card">
+            <h3>Prédiction Annuelle</h3>
+            <div class="value" id="annual-prediction-energy">-</div>
+            <span class="unit">kWh/an</span>
+          </div>
+        </div>
+
+        <!-- Conseils et Recommandations -->
+        <div class="config-section" id="advice-section" style="margin-top: 30px; display: none;">
+          <h3>💡 Conseils et Recommandations</h3>
+          <div id="advice-content" style="margin-top: 15px;">
+            <!-- Conseils dynamiques -->
           </div>
         </div>
 
         <div class="chart-container">
-          <h2>Consommation Énergétique par Modèle</h2>
+          <h2>Évolution de la Consommation</h2>
           <div class="chart-wrapper">
-            <canvas id="chart-energy-models"></canvas>
+            <canvas id="chart-consumption-trend"></canvas>
           </div>
         </div>
 
         <div class="chart-container">
-          <h2>Comparaison Modèles vs GPUs</h2>
+          <h2>Prédiction Long Terme (12 mois)</h2>
           <div class="chart-wrapper">
-            <canvas id="chart-models-gpus"></canvas>
+            <canvas id="chart-long-term-prediction"></canvas>
+          </div>
+        </div>
+        
+        <div class="chart-container">
+          <h2>Comparaison avec Moyennes de Référence</h2>
+          <div class="chart-wrapper">
+            <canvas id="chart-reference-comparison"></canvas>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Comparaison Modèles -->
-    <div id="models" class="tab-content">
-      <div class="filters">
-        <div class="filter-group">
-          <label>Filtrer par Hardware</label>
-          <select id="filter-hardware-models">
-            <option value="all">Tous</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <label>Filtrer par Taille</label>
-          <select id="filter-size-models">
-            <option value="all">Toutes</option>
-            <option value="2b">2B</option>
-            <option value="7b">7B</option>
-            <option value="8b">8B</option>
-            <option value="70b">70B</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <button class="btn btn-primary" onclick="loadModelComparison()">🔄 Actualiser</button>
-        </div>
-      </div>
-
-      <div class="chart-container">
-        <h2>Énergie par Token (par Modèle)</h2>
-        <div class="chart-wrapper">
-          <canvas id="chart-energy-per-token"></canvas>
-        </div>
-      </div>
-
-      <div class="chart-container">
-        <h2>Tableau Comparatif des Modèles</h2>
-        <table class="comparison-table" id="table-models">
-          <thead>
-            <tr>
-              <th>Modèle</th>
-              <th>Taille</th>
-              <th>Énergie/Token (J)</th>
-              <th>Hardware Testé</th>
-              <th>Moyenne Énergie (J)</th>
-            </tr>
-          </thead>
-          <tbody id="table-models-body">
-            <tr><td colspan="5" class="loading">Chargement...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Comparaison Temps Réel de Modèles -->
+    <!-- Comparaison Temps Réel des Derniers Prompts -->
     <div id="compare" class="tab-content">
       <div class="config-section">
-        <h3>🔍 Comparaison de Modèles en Temps Réel</h3>
+        <h3>⚖️ Comparaison des Derniers Prompts</h3>
         <p style="margin-bottom: 20px; color: #666;">
-          Envoyez un prompt à plusieurs modèles et comparez leurs performances, temps de réponse, consommation énergétique et impact CO₂.
+          Comparez les 3-4 derniers prompts/réponses pour analyser les différences de consommation énergétique, temps de réponse et impact CO₂.
         </p>
         
-        <div class="filter-group" style="margin-bottom: 20px;">
-          <label>📝 Votre Prompt</label>
-          <textarea 
-            id="compare-prompt" 
-            class="config-input" 
-            rows="4" 
-            placeholder="Entrez votre prompt ici... Ex: 'Expliquez-moi comment fonctionne l'apprentissage automatique en 3 paragraphes.'"
-          ></textarea>
-        </div>
-        
-        <div class="filter-group" style="margin-bottom: 20px;">
-          <label>🤖 Modèles à Comparer</label>
-          <div id="model-selection" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; margin-top: 10px;">
-            <!-- Les modèles seront chargés dynamiquement -->
-          </div>
-        </div>
-        
-        <button id="btn-compare-models" class="btn btn-primary" style="width: 100%; margin-top: 20px;">
-          🚀 Comparer les Modèles
+        <button id="btn-load-recent-prompts" class="btn btn-primary" style="width: 100%; margin-top: 20px;">
+          🔄 Charger les Derniers Prompts
         </button>
       </div>
       
       <div id="compare-results" style="display: none; margin-top: 30px;">
-        <h3 style="margin-bottom: 20px;">📊 Résultats de la Comparaison</h3>
+        <h3 style="margin-bottom: 20px;">📊 Comparaison des Derniers Prompts</h3>
         
         <!-- Métriques globales -->
         <div class="stats-grid" id="compare-stats" style="margin-bottom: 30px;">
@@ -429,7 +379,7 @@
         
         <!-- Grille de résultats -->
         <div id="compare-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px;">
-          <!-- Résultats par modèle -->
+          <!-- Résultats par prompt -->
         </div>
         
         <!-- Graphique de comparaison -->
@@ -443,54 +393,24 @@
       
       <div id="compare-loading" style="display: none; text-align: center; padding: 40px;">
         <div class="spinner"></div>
-        <p style="margin-top: 20px;">Comparaison en cours...</p>
+        <p style="margin-top: 20px;">Chargement des prompts...</p>
       </div>
-    </div>
-
-    <!-- Comparaison GPUs/Hardware -->
-    <div id="hardware" class="tab-content">
-      <div class="filters">
-        <div class="filter-group">
-          <label>Filtrer par Modèle</label>
-          <select id="filter-model-hardware">
-            <option value="all">Tous</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <button class="btn btn-primary" onclick="loadHardwareComparison()">🔄 Actualiser</button>
-        </div>
-      </div>
-
-      <div class="chart-container">
-        <h2>Consommation Énergétique par Hardware</h2>
-        <div class="chart-wrapper">
-          <canvas id="chart-energy-hardware"></canvas>
-        </div>
-      </div>
-
-      <div class="chart-container">
-        <h2>Comparaison Hardware</h2>
-        <table class="comparison-table" id="table-hardware">
-          <thead>
-            <tr>
-              <th>Hardware</th>
-              <th>Moyenne Énergie (J)</th>
-              <th>Nombre de Tests</th>
-              <th>Modèles Testés</th>
-            </tr>
-          </thead>
-          <tbody id="table-hardware-body">
-            <tr><td colspan="4" class="loading">Chargement...</td></tr>
-          </tbody>
-        </table>
+      
+      <div id="compare-empty" style="display: none; text-align: center; padding: 40px; color: #666;">
+        <p>📭 Pas assez de prompts pour la comparaison. Utilisez l'extension pour générer au moins 3-4 échanges.</p>
       </div>
     </div>
 
     <!-- Comparaison Mix Énergétique -->
     <div id="energy" class="tab-content">
-      <div class="filters">
-        <div class="filter-group">
-          <label>Mix Énergétique</label>
+      <div class="config-section">
+        <h3>⚡ Comparaison avec les Paliers de Consommation</h3>
+        <p style="margin-bottom: 20px; color: #666;">
+          Comparez votre consommation énergétique avec les moyennes de référence pour différents types d'utilisateurs.
+        </p>
+        
+        <div class="filter-group" style="margin-bottom: 20px;">
+          <label>Mix Énergétique (pour le calcul CO₂)</label>
           <select id="filter-energy-mix">
             <option value="global_average">🌍 Moyenne mondiale (480 gCO₂/kWh)</option>
             <option value="FR">🇫🇷 France (52 gCO₂/kWh)</option>
@@ -500,29 +420,42 @@
             <option value="ZA">🇿🇦 Afrique du Sud (750 gCO₂/kWh)</option>
           </select>
         </div>
-        <div class="filter-group">
-          <label>Modèle</label>
-          <select id="filter-model-energy">
-            <option value="all">Tous</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <button class="btn btn-primary" onclick="loadEnergyComparison()">🔄 Actualiser</button>
-        </div>
+        
+        <button class="btn btn-primary" id="btn-load-energy-comparison" style="width: 100%; margin-top: 20px;">
+          🔄 Charger la Comparaison
+        </button>
       </div>
 
-      <div class="chart-container">
-        <h2>Émissions CO₂ par Pays (Mix Énergétique)</h2>
-        <div class="chart-wrapper">
-          <canvas id="chart-co2-countries"></canvas>
+      <div id="energy-comparison-results" style="display: none; margin-top: 30px;">
+        <div class="chart-container">
+          <h2>Votre Consommation vs Paliers de Référence</h2>
+          <div class="chart-wrapper">
+            <canvas id="chart-energy-comparison"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-container">
+          <h2>Émissions CO₂ par Paliers</h2>
+          <div class="chart-wrapper">
+            <canvas id="chart-co2-paliers"></canvas>
+          </div>
+        </div>
+        
+        <div class="config-section" style="margin-top: 30px;">
+          <h3>📊 Détails des Paliers de Référence</h3>
+          <div id="paliers-details" style="margin-top: 15px;">
+            <!-- Détails dynamiques -->
+          </div>
         </div>
       </div>
-
-      <div class="chart-container">
-        <h2>Impact CO₂ selon le Mix Énergétique</h2>
-        <div class="chart-wrapper">
-          <canvas id="chart-co2-impact"></canvas>
-        </div>
+      
+      <div id="energy-loading" style="display: none; text-align: center; padding: 40px;">
+        <div class="spinner"></div>
+        <p style="margin-top: 20px;">Calcul en cours...</p>
+      </div>
+      
+      <div id="energy-empty" style="display: none; text-align: center; padding: 40px; color: #666;">
+        <p>📭 Aucune donnée disponible. Utilisez l'extension pour collecter des données.</p>
       </div>
     </div>
 

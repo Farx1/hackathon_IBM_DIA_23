@@ -6,6 +6,35 @@
 let charts = {};
 let datasetData = null;
 
+// Paliers de référence pour la consommation énergétique (kWh/mois)
+// Basés sur des estimations moyennes pour différents types d'utilisateurs d'IA
+const REFERENCE_TIERS = {
+  'personne_normale': {
+    name: '👤 Personne Normale',
+    description: 'Utilisation occasionnelle d\'IA (quelques requêtes par semaine)',
+    monthly_kWh: 0.5, // ~15-20 requêtes/mois, ~0.025 kWh par requête
+    color: '#4CAF50'
+  },
+  'developpeur': {
+    name: '💻 Développeur',
+    description: 'Utilisation régulière pour le développement (plusieurs requêtes par jour)',
+    monthly_kWh: 2.5, // ~100-150 requêtes/mois
+    color: '#2196F3'
+  },
+  'entreprise': {
+    name: '🏢 Entreprise',
+    description: 'Utilisation intensive pour des projets professionnels (dizaines de requêtes par jour)',
+    monthly_kWh: 10.0, // ~400-500 requêtes/mois
+    color: '#FF9800'
+  },
+  'power_user': {
+    name: '⚡ Power User',
+    description: 'Utilisation très intensive (centaines de requêtes par jour)',
+    monthly_kWh: 30.0, // ~1000+ requêtes/mois
+    color: '#F44336'
+  }
+};
+
 /**
  * Charger les données locales depuis chrome.storage et les convertir au format datasetData
  */
@@ -362,12 +391,8 @@ function switchTab(tabName, clickedElement) {
   // Charger les données de l'onglet
   if (tabName === 'overview') {
     loadOverview();
-  } else if (tabName === 'models') {
-    loadModelComparison();
   } else if (tabName === 'compare') {
-    loadModelComparisonInterface();
-  } else if (tabName === 'hardware') {
-    loadHardwareComparison();
+    loadRecentPromptsComparison();
   } else if (tabName === 'energy') {
     loadEnergyComparison();
   } else if (tabName === 'predictions') {
@@ -1423,7 +1448,7 @@ async function loadAllData() {
 }
 
 /**
- * Charger la vue d'ensemble
+ * Charger la vue d'ensemble avec prédictions long terme et conseils
  */
 async function loadOverview() {
   try {
@@ -1449,17 +1474,18 @@ async function loadOverview() {
     
     // Calculer les statistiques
     const totalMeasures = datasetData.length;
-    const models = new Set(datasetData.map(d => d.model_name || d.model).filter(Boolean));
-    const hardware = new Set(datasetData.map(d => d.hardware_type).filter(Boolean));
     
-    // Calculer le CO₂ total
+    // Calculer l'énergie totale (en kWh)
+    let totalEnergyJoules = 0;
     let totalCO2 = 0;
     datasetData.forEach(row => {
-      // Utiliser co2_grams si disponible, sinon calculer
+      const energy = parseFloat(row.energy_consumption_llm_total) || 0;
+      totalEnergyJoules += energy;
+      
+      // Calculer CO₂
       if (row.co2_grams) {
         totalCO2 += parseFloat(row.co2_grams) || 0;
       } else {
-        const energy = parseFloat(row.energy_consumption_llm_total) || 0;
         const energyKwh = energy / 3600000;
         const globalIntensity = carbonIntensityData?.countries?.global_average?.intensity || 480;
         const co2 = energyKwh * globalIntensity;
@@ -1467,20 +1493,39 @@ async function loadOverview() {
       }
     });
     
+    const totalEnergyKwh = totalEnergyJoules / 3600000;
+    
+    // Calculer la période de collecte (en jours)
+    const timestamps = datasetData.map(d => d.timestamp || Date.now()).filter(Boolean);
+    const minTimestamp = Math.min(...timestamps);
+    const maxTimestamp = Math.max(...timestamps);
+    const daysDiff = Math.max(1, (maxTimestamp - minTimestamp) / (1000 * 60 * 60 * 24));
+    const daysInMonth = 30;
+    
+    // Calculer la consommation mensuelle moyenne
+    const monthlyEnergyKwh = (totalEnergyKwh / daysDiff) * daysInMonth;
+    
+    // Prédiction annuelle
+    const annualEnergyKwh = monthlyEnergyKwh * 12;
+    
     // Mettre à jour les stats
     const totalMeasuresEl = document.getElementById('total-measures');
-    const totalModelsEl = document.getElementById('total-models');
-    const totalHardwareEl = document.getElementById('total-hardware');
+    const totalEnergyEl = document.getElementById('total-energy');
     const totalCO2El = document.getElementById('total-co2');
+    const annualPredictionEl = document.getElementById('annual-prediction-energy');
     
     if (totalMeasuresEl) totalMeasuresEl.textContent = totalMeasures.toLocaleString();
-    if (totalModelsEl) totalModelsEl.textContent = models.size;
-    if (totalHardwareEl) totalHardwareEl.textContent = hardware.size;
-    if (totalCO2El) totalCO2El.textContent = (totalCO2 / 1000).toFixed(2); // Convertir en kg
+    if (totalEnergyEl) totalEnergyEl.textContent = totalEnergyKwh.toFixed(3);
+    if (totalCO2El) totalCO2El.textContent = (totalCO2 / 1000).toFixed(2);
+    if (annualPredictionEl) annualPredictionEl.textContent = annualEnergyKwh.toFixed(2);
+    
+    // Générer les conseils
+    generateAdvice(totalEnergyKwh, monthlyEnergyKwh, annualEnergyKwh, totalCO2 / 1000);
     
     // Charger les graphiques
-    loadEnergyModelsChart();
-    loadModelsGPUsChart();
+    loadConsumptionTrendChart();
+    loadLongTermPredictionChart(monthlyEnergyKwh);
+    loadReferenceComparisonChart(monthlyEnergyKwh);
     
     if (loading) loading.style.display = 'none';
     if (content) content.style.display = 'block';
