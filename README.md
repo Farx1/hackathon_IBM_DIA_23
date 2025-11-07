@@ -238,7 +238,7 @@ Ce projet a été développé par :
 
 **🌱 Track Sustainability Team 23**
 
-| 👨‍💻 | 👨‍💻 | 👨‍💻 | 👨‍💻 | 👩‍💻 |
+| 👨‍💻 | 👨‍💻 | 👨‍💻 | 👨‍💻 | 👩‍💻 | 👩‍💻 |
 |:---:|:---:|:---:|:---:|:---:|:---:|
 | **Jules Sayad-Barth** | **Hugo Robin** | **Leo Demelle** | **Ghadi Salameh** | **Maria Katibi** | **Hector Mell Mariolle** |
 
