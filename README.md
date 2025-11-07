@@ -148,7 +148,7 @@ Exemples d'intensité carbone :
 - 🇺🇸 États-Unis : 369 gCO₂/kWh
 - 🌍 Moyenne mondiale : 480 gCO₂/kWh
 - 🇨🇳 Chine : 581 gCO₂/kWh
-- 🇵🇱 Pologne : 652 gCO₂/kWh (charbon dominant)
+- 🇿🇦 Afrique du Sud : 750 gCO₂/kWh 
 
 ## 🛠️ Architecture technique
 
