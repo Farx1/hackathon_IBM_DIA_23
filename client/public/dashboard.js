@@ -3197,8 +3197,34 @@ async function runPredictions() {
                             config.watsonxConfig?.deploymentId && 
                             window.WatsonxService?.predictEnergyWithDeployedModel;
     
-    // Vérifier le serveur local si sélectionné ET si mode serveur
-    if (predictionModel === 'server' && predictionMode === 'server') {
+    // Vérifier le serveur local si sélectionné (MLP ou serveur)
+    if (predictionModel === 'mlp-regressor') {
+      // Vérifier directement l'endpoint MLP
+      try {
+        const healthResponse = await fetch('http://localhost:3000/api/health');
+        if (healthResponse.ok) {
+          showStatus('✅ Serveur local disponible - Modèle MLP prêt', 'success', 'predictions-status');
+          const serverStatusDiv = document.getElementById('server-status');
+          const serverStatusText = document.getElementById('server-status-text');
+          if (serverStatusDiv && serverStatusText) {
+            serverStatusDiv.style.display = 'block';
+            serverStatusDiv.style.background = '#d4edda';
+            serverStatusText.textContent = '✅ Serveur connecté - Modèle MLP Regressor Deep disponible';
+          }
+        } else {
+          throw new Error('Serveur non disponible');
+        }
+      } catch (error) {
+        showStatus('⚠️ Serveur local non disponible. Le modèle MLP nécessite le serveur. Démarrez le serveur avec "npm run dev" dans le dossier server.', 'error', 'predictions-status');
+        const serverStatusDiv = document.getElementById('server-status');
+        const serverStatusText = document.getElementById('server-status-text');
+        if (serverStatusDiv && serverStatusText) {
+          serverStatusDiv.style.display = 'block';
+          serverStatusDiv.style.background = '#fff3cd';
+          serverStatusText.textContent = '⚠️ Serveur non disponible. Démarrez le serveur avec "npm run dev" dans le dossier server.';
+        }
+      }
+    } else if (predictionModel === 'server' && predictionMode === 'server') {
       if (window.ServerPredictor) {
         const health = await window.ServerPredictor.checkHealth();
         if (!health || !health.hasConfig) {
@@ -3255,7 +3281,48 @@ async function runPredictions() {
         const predictionMode = await getPredictionMode();
         
         // Utiliser le modèle sélectionné selon le mode
-        if (predictionModel === 'server' && predictionMode === 'server' && window.ServerPredictor) {
+        if (predictionModel === 'mlp-regressor') {
+          try {
+            // S'assurer que toutes les valeurs sont des nombres valides
+            const totalDuration = typeof item.total_duration === 'number' ? item.total_duration : (parseFloat(item.total_duration) || 0);
+            const promptTokens = typeof item.prompt_token_length === 'number' ? item.prompt_token_length : (parseInt(item.prompt_token_length) || 0);
+            const responseTokens = typeof item.response_token_length === 'number' ? item.response_token_length : (parseInt(item.response_token_length) || 0);
+            const responseDuration = typeof item.response_duration === 'number' ? item.response_duration : (parseFloat(item.response_duration) || 0);
+            const wordCount = typeof item.word_count === 'number' ? item.word_count : (parseInt(item.word_count) || 0);
+            const readingTime = typeof item.reading_time === 'number' ? item.reading_time : (parseFloat(item.reading_time) || 0);
+            
+            // Utiliser l'endpoint MLP du serveur
+            const response = await fetch('http://localhost:3000/api/predict-mlp', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                totalDuration,
+                promptTokens,
+                responseTokens,
+                responseDuration,
+                wordCount,
+                readingTime
+              })
+            });
+            
+            if (response.ok) {
+              const result = await response.json();
+              if (result.success && result.energy !== null && result.energy !== undefined) {
+                energyJoules = result.energy;
+                predictionSource = 'mlp-regressor';
+              } else {
+                console.warn(`⚠️ Prédiction MLP retournée invalide pour ${item.id}:`, result);
+              }
+            } else {
+              const errorData = await response.json().catch(() => ({ error: 'Erreur HTTP ' + response.status }));
+              throw new Error(errorData.error || 'Erreur lors de la prédiction MLP');
+            }
+          } catch (error) {
+            console.warn(`⚠️ Erreur prédiction MLP pour ${item.id}, fallback:`, error);
+          }
+        } else if (predictionModel === 'server' && predictionMode === 'server' && window.ServerPredictor) {
           try {
             // S'assurer que toutes les valeurs sont des nombres valides
             const totalDuration = typeof item.total_duration === 'number' ? item.total_duration : (parseFloat(item.total_duration) || 0);
@@ -3329,7 +3396,9 @@ async function runPredictions() {
           );
           
           // Déterminer la source selon le modèle utilisé
-          if (predictionModel === 'server' && predictionSource === 'server') {
+          if (predictionModel === 'mlp-regressor' && predictionSource === 'mlp-regressor') {
+            // Déjà défini
+          } else if (predictionModel === 'server' && predictionSource === 'server') {
             // Déjà défini
           } else if (predictionModel === 'random-forest' && window.RandomForestPredictor?.isInitialized()) {
             predictionSource = 'random-forest';
@@ -3397,6 +3466,7 @@ function displayPredictionsResults(results, predictionModel) {
   const totalEnergy = successful.reduce((sum, r) => sum + (r.energyJoules || 0), 0);
   const totalCO2 = successful.reduce((sum, r) => sum + (r.co2Grams || 0), 0);
   const serverCount = successful.filter(r => r.predictionSource === 'server').length;
+  const mlpCount = successful.filter(r => r.predictionSource === 'mlp-regressor').length;
   const deployedCount = successful.filter(r => r.predictionSource === 'deployed').length;
   const randomForestCount = successful.filter(r => r.predictionSource === 'random-forest').length;
   const simplifiedCount = successful.filter(r => r.predictionSource === 'simplified').length;
@@ -3424,6 +3494,12 @@ function displayPredictionsResults(results, predictionModel) {
       <div style="background: #d1ecf1; padding: 15px; border-radius: 8px;">
         <strong>🖥️ Serveur Local</strong>
         <div style="font-size: 24px; margin-top: 5px; color: #0c5460;">${serverCount}</div>
+      </div>
+      ` : ''}
+      ${mlpCount > 0 ? `
+      <div style="background: #e7d4f5; padding: 15px; border-radius: 8px;">
+        <strong>🧠 MLP Regressor</strong>
+        <div style="font-size: 24px; margin-top: 5px; color: #6f42c1;">${mlpCount}</div>
       </div>
       ` : ''}
       ${randomForestCount > 0 ? `

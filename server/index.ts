@@ -5,6 +5,7 @@ import { fileURLToPath } from "url";
 import https from "https";
 import http from "http";
 import { config } from "dotenv";
+import { spawn } from "child_process";
 
 // Charger les variables d'environnement depuis .env
 config();
@@ -301,6 +302,281 @@ async function startServer() {
     }
   });
 
+  // Endpoint pour prédiction avec MLPRegressorDeep (modèle Python local)
+  app.post("/api/predict-mlp", async (req, res) => {
+    try {
+      const { totalDuration, promptTokens, responseTokens, responseDuration, wordCount, readingTime } = req.body;
+      
+      // Vérifier que toutes les données nécessaires sont présentes
+      if (
+        totalDuration === undefined ||
+        promptTokens === undefined ||
+        responseTokens === undefined ||
+        responseDuration === undefined ||
+        wordCount === undefined ||
+        readingTime === undefined
+      ) {
+        return res.status(400).json({
+          success: false,
+          error: "Données incomplètes. Requis: totalDuration, promptTokens, responseTokens, responseDuration, wordCount, readingTime"
+        });
+      }
+
+      // Préparer les données pour le script Python
+      const features = {
+        total_duration: totalDuration,
+        prompt_token_length: promptTokens,
+        response_token_length: responseTokens,
+        response_duration: responseDuration,
+        word_count: wordCount,
+        reading_time: readingTime
+      };
+
+      const inputData = JSON.stringify({ features });
+
+      // Chemin vers le script Python
+      const pythonScriptPath = path.resolve(__dirname, "mlp_predictor.py");
+      
+      // Vérifier que le fichier existe
+      const fs = await import("fs/promises");
+      try {
+        await fs.access(pythonScriptPath);
+      } catch (error) {
+        return res.status(500).json({
+          success: false,
+          error: `Script Python introuvable: ${pythonScriptPath}`
+        });
+      }
+      
+      // Détecter la commande Python (python3 sur Linux/Mac, python sur Windows)
+      const pythonCommand = process.platform === "win32" ? "python" : "python3";
+      
+      // Exécuter le script Python
+      const pythonProcess = spawn(pythonCommand, [pythonScriptPath], {
+        cwd: path.dirname(pythonScriptPath),
+        env: { ...process.env, PYTHONUNBUFFERED: "1" } // Désactiver le buffering Python
+      });
+
+      let stdout = "";
+      let stderr = "";
+
+      pythonProcess.stdout.on("data", (data) => {
+        stdout += data.toString();
+      });
+
+      pythonProcess.stderr.on("data", (data) => {
+        stderr += data.toString();
+      });
+
+      // Envoyer les données au script Python
+      pythonProcess.stdin.write(inputData);
+      pythonProcess.stdin.end();
+
+      // Attendre la fin du processus avec timeout
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          pythonProcess.kill();
+          reject(new Error(`Timeout: Script Python n'a pas répondu dans les 30 secondes`));
+        }, 30000); // 30 secondes timeout
+
+        pythonProcess.on("close", (code) => {
+          clearTimeout(timeout);
+          if (code !== 0) {
+            reject(new Error(`Script Python terminé avec code ${code}: ${stderr || 'Aucune sortie d\'erreur'}`));
+          } else {
+            resolve();
+          }
+        });
+
+        pythonProcess.on("error", (error) => {
+          clearTimeout(timeout);
+          reject(new Error(`Erreur exécution script Python: ${error.message}. Vérifiez que Python est installé et dans le PATH.`));
+        });
+      });
+
+      // Vérifier que stdout n'est pas vide
+      if (!stdout || stdout.trim() === "") {
+        return res.status(500).json({
+          success: false,
+          error: `Script Python n'a retourné aucune sortie. Erreurs: ${stderr || 'Aucune'}`,
+          stderr: stderr
+        });
+      }
+
+      // Parser la réponse JSON
+      let result;
+      try {
+        result = JSON.parse(stdout);
+      } catch (parseError) {
+        return res.status(500).json({
+          success: false,
+          error: `Erreur parsing réponse JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}. Sortie: ${stdout.substring(0, 200)}`,
+          stdout: stdout.substring(0, 500),
+          stderr: stderr
+        });
+      }
+
+      if (!result.success) {
+        return res.status(500).json({
+          success: false,
+          error: result.error || "Erreur lors de la prédiction MLP",
+          stderr: stderr
+        });
+      }
+
+      res.json({
+        success: true,
+        energy: result.energy
+      });
+    } catch (error) {
+      console.error("❌ Erreur prédiction MLP:", error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Endpoint pour prédictions batch avec MLPRegressorDeep
+  app.post("/api/predict-mlp-batch", async (req, res) => {
+    try {
+      const { data } = req.body;
+
+      if (!Array.isArray(data) || data.length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: "Données invalides: un tableau non vide est requis"
+        });
+      }
+
+      // Préparer les données batch pour le script Python
+      const batch = data.map((item: any) => ({
+        total_duration: item.totalDuration || item.total_duration || 0,
+        prompt_token_length: item.promptTokens || item.prompt_token_length || 0,
+        response_token_length: item.responseTokens || item.response_token_length || 0,
+        response_duration: item.responseDuration || item.response_duration || 0,
+        word_count: item.wordCount || item.word_count || 0,
+        reading_time: item.readingTime || item.reading_time || 0
+      }));
+
+      const inputData = JSON.stringify({ batch });
+
+      // Chemin vers le script Python
+      const pythonScriptPath = path.resolve(__dirname, "mlp_predictor.py");
+      
+      // Vérifier que le fichier existe
+      const fsBatch = await import("fs/promises");
+      try {
+        await fsBatch.access(pythonScriptPath);
+      } catch (error) {
+        return res.status(500).json({
+          success: false,
+          error: `Script Python introuvable: ${pythonScriptPath}`
+        });
+      }
+      
+      // Détecter la commande Python (python3 sur Linux/Mac, python sur Windows)
+      const pythonCommand = process.platform === "win32" ? "python" : "python3";
+      
+      // Exécuter le script Python
+      const pythonProcess = spawn(pythonCommand, [pythonScriptPath], {
+        cwd: path.dirname(pythonScriptPath),
+        env: { ...process.env, PYTHONUNBUFFERED: "1" } // Désactiver le buffering Python
+      });
+
+      let stdout = "";
+      let stderr = "";
+
+      pythonProcess.stdout.on("data", (data) => {
+        stdout += data.toString();
+      });
+
+      pythonProcess.stderr.on("data", (data) => {
+        stderr += data.toString();
+      });
+
+      // Envoyer les données au script Python
+      pythonProcess.stdin.write(inputData);
+      pythonProcess.stdin.end();
+
+      // Attendre la fin du processus avec timeout
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          pythonProcess.kill();
+          reject(new Error(`Timeout: Script Python n'a pas répondu dans les 60 secondes`));
+        }, 60000); // 60 secondes timeout pour batch
+
+        pythonProcess.on("close", (code) => {
+          clearTimeout(timeout);
+          if (code !== 0) {
+            reject(new Error(`Script Python terminé avec code ${code}: ${stderr || 'Aucune sortie d\'erreur'}`));
+          } else {
+            resolve();
+          }
+        });
+
+        pythonProcess.on("error", (error) => {
+          clearTimeout(timeout);
+          reject(new Error(`Erreur exécution script Python: ${error.message}. Vérifiez que Python est installé et dans le PATH.`));
+        });
+      });
+
+      // Vérifier que stdout n'est pas vide
+      if (!stdout || stdout.trim() === "") {
+        return res.status(500).json({
+          success: false,
+          error: `Script Python n'a retourné aucune sortie. Erreurs: ${stderr || 'Aucune'}`,
+          stderr: stderr
+        });
+      }
+
+      // Parser la réponse JSON
+      let result;
+      try {
+        result = JSON.parse(stdout);
+      } catch (parseError) {
+        return res.status(500).json({
+          success: false,
+          error: `Erreur parsing réponse JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}. Sortie: ${stdout.substring(0, 200)}`,
+          stdout: stdout.substring(0, 500),
+          stderr: stderr
+        });
+      }
+
+      if (!result.success) {
+        return res.status(500).json({
+          success: false,
+          error: result.error || "Erreur lors des prédictions MLP batch"
+        });
+      }
+
+      // Transformer les résultats pour correspondre au format attendu
+      const results = result.results.map((item: any) => ({
+        ...item.input,
+        energyJoules: item.success ? item.energy : null,
+        success: item.success,
+        error: item.error || null,
+        source: "mlp-regressor"
+      }));
+
+      res.json({
+        success: true,
+        results,
+        stats: {
+          total: results.length,
+          success: results.filter((r: any) => r.success).length,
+          errors: results.filter((r: any) => !r.success).length
+        }
+      });
+    } catch (error) {
+      console.error("❌ Erreur prédiction MLP batch:", error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
   // Endpoint pour les prédictions
   app.post("/api/predict", async (req, res) => {
     try {
@@ -453,8 +729,10 @@ async function startServer() {
     console.log(`📊 API endpoints:`);
     console.log(`   GET  /api/health - Vérifier l'état du serveur`);
     console.log(`   GET  /api/test-auth - Tester l'authentification`);
-    console.log(`   POST /api/predict - Prédiction unique`);
-    console.log(`   POST /api/predict-batch - Prédictions en batch`);
+    console.log(`   POST /api/predict - Prédiction unique (Watsonx)`);
+    console.log(`   POST /api/predict-batch - Prédictions en batch (Watsonx)`);
+    console.log(`   POST /api/predict-mlp - Prédiction unique (MLP Regressor Deep)`);
+    console.log(`   POST /api/predict-mlp-batch - Prédictions en batch (MLP Regressor Deep)`);
     
     if (!IBM_API_KEY || !IBM_PROJECT_ID || !IBM_DEPLOYMENT_ID) {
       console.warn(`⚠️  Variables d'environnement manquantes:`);
@@ -471,3 +749,4 @@ async function startServer() {
 }
 
 startServer().catch(console.error);
+
