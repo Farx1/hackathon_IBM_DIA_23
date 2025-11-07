@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Track Sustainability - Dashboard Analytics</title>
+  <script src="chart.umd.min.js"></script>
+  <!-- Charger init-scripts.js qui chargera les autres scripts via chrome.runtime.getURL() -->
+  <script src="init-scripts.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      opacity: 0.9;
+      font-size: 16px;
+    }
+
+    .nav-tabs {
+      display: flex;
+      background: #f8f9fa;
+      border-bottom: 2px solid #e9ecef;
+      padding: 0 20px;
+    }
+
+    .nav-tab {
+      padding: 15px 25px;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s;
+      font-weight: 500;
+    }
+
+    .nav-tab:hover {
+      background: #e9ecef;
+    }
+
+    .nav-tab.active {
+      border-bottom-color: #667eea;
+      color: #667eea;
+    }
+
+    .tab-content {
+      display: none !important;
+      padding: 30px;
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .tab-content.active {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+
+    .filters {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filter-group {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .filter-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .filter-group select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      background: white;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .stat-card h3 {
+      font-size: 14px;
+      opacity: 0.9;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-card .value {
+      font-size: 32px;
+      font-weight: 700;
+    }
+
+    .stat-card .unit {
+      font-size: 14px;
+      opacity: 0.8;
+      margin-left: 5px;
+    }
+    
+    .stat-subtitle {
+      font-size: 12px;
+      opacity: 0.85;
+      margin-top: 8px;
+      font-weight: 400;
+    }
+
+    .chart-container {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .chart-container h2 {
+      margin-bottom: 20px;
+      color: #333;
+      font-size: 20px;
+    }
+
+    .chart-wrapper {
+      position: relative;
+      height: 400px;
+    }
+
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .comparison-table th {
+      background: #667eea;
+      color: white;
+      padding: 15px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .comparison-table td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    .comparison-table tr:hover {
+      background: #f8f9fa;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 60px 20px;
+      color: #666;
+    }
+
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .error {
+      background: #fee;
+      color: #c33;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s;
+      position: relative;
+      z-index: 10;
+      pointer-events: auto;
+    }
+    
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #5568d3;
+    }
+
+    .config-section {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+    }
+
+    .config-section h3 {
+      margin-bottom: 15px;
+      color: #333;
+    }
+
+    .config-input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🌱 Track Sustainability - Dashboard Analytics</h1>
+      <p>Comparaison des modèles, GPUs et mix énergétiques</p>
+    </div>
+
+    <div class="nav-tabs">
+      <div class="nav-tab active" data-tab="overview">📊 Vue d'ensemble</div>
+      <div class="nav-tab" data-tab="predictions">🔮 Prédictions ML</div>
+      <div class="nav-tab" data-tab="compare">⚖️ Comparaison Temps Réel</div>
+      <div class="nav-tab" data-tab="energy">⚡ Mix Énergétique</div>
+      <div class="nav-tab" data-tab="config">⚙️ Configuration</div>
+    </div>
+
+    <!-- Vue d'ensemble -->
+    <div id="overview" class="tab-content active">
+      <div class="loading" id="overview-loading">
+        <div class="spinner"></div>
+        <p>Chargement des données...</p>
+      </div>
+      <div id="overview-content" style="display: none;">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3>Total Échanges</h3>
+            <div class="value" id="total-measures">-</div>
+            <div class="stat-subtitle" id="total-measures-subtitle"></div>
+          </div>
+          <div class="stat-card">
+            <h3>Énergie Totale</h3>
+            <div class="value" id="total-energy">-</div>
+            <span class="unit">kWh</span>
+            <div class="stat-subtitle" id="total-energy-subtitle"></div>
+          </div>
+          <div class="stat-card">
+            <h3>CO₂ Émis (Total)</h3>
+            <div class="value" id="total-co2">-</div>
+            <span class="unit">kg</span>
+            <div class="stat-subtitle" id="total-co2-subtitle"></div>
+          </div>
+          <div class="stat-card">
+            <h3>Prédiction Annuelle</h3>
+            <div class="value" id="annual-prediction-energy">-</div>
+            <span class="unit">kWh/an</span>
+            <div class="stat-subtitle" id="annual-prediction-subtitle"></div>
+          </div>
+        </div>
+        
+        <!-- Statistiques détaillées -->
+        <div class="stats-grid" style="margin-top: 20px;">
+          <div class="stat-card" style="background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);">
+            <h3>Consommation Mensuelle</h3>
+            <div class="value" id="monthly-energy">-</div>
+            <span class="unit">kWh/mois</span>
+            <div class="stat-subtitle" id="monthly-energy-subtitle"></div>
+          </div>
+          <div class="stat-card" style="background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);">
+            <h3>Total Tokens</h3>
+            <div class="value" id="total-tokens">-</div>
+            <div class="stat-subtitle" id="total-tokens-subtitle"></div>
+          </div>
+          <div class="stat-card" style="background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);">
+            <h3>Énergie Moyenne/Échange</h3>
+            <div class="value" id="avg-energy-per-exchange">-</div>
+            <span class="unit">kWh</span>
+            <div class="stat-subtitle" id="avg-energy-subtitle"></div>
+          </div>
+          <div class="stat-card" style="background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%);">
+            <h3>Période de Collecte</h3>
+            <div class="value" id="collection-period">-</div>
+            <span class="unit">jours</span>
+            <div class="stat-subtitle" id="collection-period-subtitle"></div>
+          </div>
+        </div>
+        
+        <!-- Statistiques par plateforme et modèle -->
+        <div class="chart-container" style="margin-top: 30px;">
+          <h2>📊 Répartition par Plateforme</h2>
+          <div id="platform-stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px;">
+            <!-- Stats dynamiques -->
+          </div>
+        </div>
+        
+        <div class="chart-container" style="margin-top: 30px;">
+          <h2>🤖 Répartition par Modèle</h2>
+          <div id="model-stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px;">
+            <!-- Stats dynamiques -->
+          </div>
+        </div>
+
+        <!-- Conseils et Recommandations -->
+        <div class="config-section" id="advice-section" style="margin-top: 30px; display: none;">
+          <h3>💡 Conseils et Recommandations</h3>
+          <div id="advice-content" style="margin-top: 15px;">
+            <!-- Conseils dynamiques -->
+          </div>
+        </div>
+
+        <div class="chart-container">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="margin: 0;">Évolution de la Consommation</h2>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <label for="scenario-select" style="font-size: 14px; font-weight: 500;">Scénario de projet:</label>
+              <select id="scenario-select" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; background: white; cursor: pointer;">
+                <option value="conservative">📉 Projet Modéré</option>
+                <option value="normal" selected>📊 Projet Normal</option>
+                <option value="intensive">📈 Projet Intensif</option>
+              </select>
+            </div>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="chart-consumption-trend"></canvas>
+          </div>
+          <div style="margin-top: 15px; padding: 12px; background: #f8f9fa; border-radius: 6px; font-size: 12px; color: #666;">
+            <strong>ℹ️ Note:</strong> Les prédictions sont basées sur vos données historiques avec une simulation de trajectoires semi-aléatoires. 
+            La zone ombrée représente l'intervalle de confiance à 80%. Les prédictions sont indicatives et peuvent varier selon votre utilisation réelle.
+          </div>
+        </div>
+
+        <div class="chart-container">
+          <h2>Prédiction Long Terme (12 mois)</h2>
+          <div class="chart-wrapper">
+            <canvas id="chart-long-term-prediction"></canvas>
+          </div>
+        </div>
+        
+        <div class="chart-container">
+          <h2>Comparaison avec Moyennes de Référence</h2>
+          <div class="chart-wrapper">
+            <canvas id="chart-reference-comparison"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comparaison Temps Réel des Derniers Prompts -->
+    <div id="compare" class="tab-content">
+      <div class="config-section">
+        <h3>⚖️ Comparaison des Derniers Prompts</h3>
+        <p style="margin-bottom: 20px; color: #666;">
+          Comparez les 3-4 derniers prompts/réponses pour analyser les différences de consommation énergétique, temps de réponse et impact CO₂.
+        </p>
+        
+        <button id="btn-load-recent-prompts" class="btn btn-primary" style="width: 100%; margin-top: 20px;">
+          🔄 Charger les Derniers Prompts
+        </button>
+      </div>
+      
+      <div id="compare-results" style="display: none; margin-top: 30px;">
+        <h3 style="margin-bottom: 20px;">📊 Comparaison des Derniers Prompts</h3>
+        
+        <!-- Métriques globales -->
+        <div class="stats-grid" id="compare-stats" style="margin-bottom: 30px;">
+          <!-- Stats dynamiques -->
+        </div>
+        
+        <!-- Grille de résultats -->
+        <div id="compare-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px;">
+          <!-- Résultats par prompt -->
+        </div>
+        
+        <!-- Graphique de comparaison -->
+        <div class="chart-container" style="margin-top: 30px;">
+          <h2>Comparaison des Métriques</h2>
+          <div class="chart-wrapper">
+            <canvas id="chart-compare-metrics"></canvas>
+          </div>
+        </div>
+      </div>
+      
+      <div id="compare-loading" style="display: none; text-align: center; padding: 40px;">
+        <div class="spinner"></div>
+        <p style="margin-top: 20px;">Chargement des prompts...</p>
+      </div>
+      
+      <div id="compare-empty" style="display: none; text-align: center; padding: 40px; color: #666;">
+        <p>📭 Pas assez de prompts pour la comparaison. Utilisez l'extension pour générer au moins 3-4 échanges.</p>
+      </div>
+    </div>
+
+    <!-- Comparaison Mix Énergétique -->
+    <div id="energy" class="tab-content">
+      <div class="config-section">
+        <h3>⚡ Comparaison avec les Paliers de Consommation</h3>
+        <p style="margin-bottom: 20px; color: #666;">
+          Comparez votre consommation énergétique avec les moyennes de référence pour différents types d'utilisateurs.
+        </p>
+        
+        <div class="filter-group" style="margin-bottom: 20px;">
+          <label>Mix Énergétique (pour le calcul CO₂)</label>
+          <select id="filter-energy-mix">
+            <option value="global_average">🌍 Moyenne mondiale (480 gCO₂/kWh)</option>
+            <option value="FR">🇫🇷 France (52 gCO₂/kWh)</option>
+            <option value="US">🇺🇸 États-Unis (369 gCO₂/kWh)</option>
+            <option value="CN">🇨🇳 Chine (581 gCO₂/kWh)</option>
+            <option value="SE">🇸🇪 Suède (13 gCO₂/kWh)</option>
+            <option value="ZA">🇿🇦 Afrique du Sud (750 gCO₂/kWh)</option>
+          </select>
+        </div>
+        
+        <button class="btn btn-primary" id="btn-load-energy-comparison" style="width: 100%; margin-top: 20px;">
+          🔄 Charger la Comparaison
+        </button>
+      </div>
+
+      <div id="energy-comparison-results" style="display: none; margin-top: 30px;">
+        <div class="chart-container">
+          <h2>Votre Consommation vs Paliers de Référence</h2>
+          <div class="chart-wrapper">
+            <canvas id="chart-energy-comparison"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-container">
+          <h2>Émissions CO₂ par Paliers</h2>
+          <div class="chart-wrapper">
+            <canvas id="chart-co2-paliers"></canvas>
+          </div>
+        </div>
+        
+        <div class="config-section" style="margin-top: 30px;">
+          <h3>📊 Détails des Paliers de Référence</h3>
+          <div id="paliers-details" style="margin-top: 15px;">
+            <!-- Détails dynamiques -->
+          </div>
+        </div>
+      </div>
+      
+      <div id="energy-loading" style="display: none; text-align: center; padding: 40px;">
+        <div class="spinner"></div>
+        <p style="margin-top: 20px;">Calcul en cours...</p>
+      </div>
+      
+      <div id="energy-empty" style="display: none; text-align: center; padding: 40px; color: #666;">
+        <p>📭 Aucune donnée disponible. Utilisez l'extension pour collecter des données.</p>
+      </div>
+    </div>
+
+    <!-- Prédictions ML -->
+    <div id="predictions" class="tab-content">
+      <div class="config-section">
+        <h3>🔮 Prédictions avec Modèle ML Déployé</h3>
+        <p style="margin-bottom: 15px; color: #666; font-size: 13px;">
+          Utilisez les données collectées localement ou importez un fichier CSV pour tester le modèle ML déployé sur Watsonx.
+        </p>
+        
+        <div style="margin-bottom: 20px;">
+          <h4>Source des données</h4>
+          <label style="display: block; margin: 10px 0;">
+            <input type="radio" name="data-source" value="local" checked style="margin-right: 8px;">
+            📦 Utiliser les données collectées localement
+          </label>
+          <label style="display: block; margin: 10px 0;">
+            <input type="radio" name="data-source" value="import" style="margin-right: 8px;">
+            📁 Importer un fichier CSV
+          </label>
+        </div>
+        
+        <div id="local-data-section">
+          <button class="btn btn-primary" id="btn-load-local-data" style="margin-bottom: 15px;">📦 Charger les Données Locales</button>
+          <div id="local-data-info" style="color: #666; font-size: 12px; margin-bottom: 15px;"></div>
+        </div>
+        
+        <div id="import-data-section" style="display: none;">
+          <input type="file" id="csv-file-input" accept=".csv" style="margin-bottom: 15px; padding: 8px; width: 100%;">
+          <small style="color: #666; font-size: 12px; display: block; margin-bottom: 15px;">
+            Format CSV attendu: total_duration, prompt_token_length, response_token_length, response_duration, word_count, reading_time
+          </small>
+        </div>
+        
+        <div style="margin-top: 20px;">
+          <h4>Options de prédiction</h4>
+          <label style="display: block; margin: 10px 0;">
+            <input type="radio" name="prediction-model" value="server" checked style="margin-right: 8px;">
+            🖥️ Serveur Local (recommandé - credentials dans .env)
+          </label>
+          <label style="display: block; margin: 10px 0;">
+            <input type="radio" name="prediction-model" value="random-forest" style="margin-right: 8px;">
+            🌲 Modèle Random Forest Local
+          </label>
+          <label style="display: block; margin: 10px 0;">
+            <input type="radio" name="prediction-model" value="deployed" style="margin-right: 8px;">
+            ☁️ Modèle ML Déployé sur Watsonx (si configuré)
+          </label>
+          <label style="display: block; margin: 10px 0;">
+            <input type="radio" name="prediction-model" value="simplified" style="margin-right: 8px;">
+            📊 Modèle Simplifié (fallback)
+          </label>
+        </div>
+        
+        <div id="server-status" style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 6px; display: none;">
+          <small id="server-status-text" style="color: #666;"></small>
+        </div>
+        
+        <button class="btn btn-primary" id="btn-run-predictions" style="margin-top: 15px; width: 100%;">🚀 Lancer les Prédictions</button>
+      </div>
+      
+      <div id="predictions-results" style="margin-top: 30px; display: none;">
+        <h3>📊 Résultats des Prédictions</h3>
+        <div id="predictions-stats" style="margin: 20px 0;"></div>
+        <div id="predictions-table-container" style="overflow-x: auto;">
+          <table id="predictions-table" style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="background: #f8f9fa;">
+                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">ID</th>
+                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Modèle</th>
+                <th style="padding: 10px; border: 1px solid #ddd; text-align: right;">Tokens</th>
+                <th style="padding: 10px; border: 1px solid #ddd; text-align: right;">Énergie (J)</th>
+                <th style="padding: 10px; border: 1px solid #ddd; text-align: right;">CO₂ (g)</th>
+                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Source</th>
+              </tr>
+            </thead>
+            <tbody id="predictions-table-body">
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <div id="predictions-status" style="margin-top: 20px;"></div>
+    </div>
+
+    <!-- Configuration -->
+    <div id="config" class="tab-content">
+      <div class="config-section">
+        <h3>Configuration Watsonx</h3>
+        <p style="margin-bottom: 15px; color: #666; font-size: 13px;">
+          💡 <strong>Nouvelle clé API:</strong> Utilisez votre clé API Watsonx (format: <code>cpd-apikey-...</code>)
+        </p>
+        <label>API Key</label>
+        <input type="password" id="config-api-key" class="config-input" placeholder="cpd-apikey-IBMid-6910017ZA9-2025-11-06T14:49:52Z">
+        
+        <label>API URL</label>
+        <select id="config-api-url" class="config-input">
+          <option value="https://us-south.ml.cloud.ibm.com">US South (Dallas)</option>
+          <option value="https://eu-de.ml.cloud.ibm.com" selected>EU Germany (Frankfurt) ⭐</option>
+          <option value="https://eu-gb.ml.cloud.ibm.com">EU UK (London)</option>
+          <option value="https://jp-tok.ml.cloud.ibm.com">Japan Tokyo</option>
+        </select>
+        
+        <label>Project ID</label>
+        <input type="text" id="config-project-id" class="config-input" placeholder="dc953834-0683-4609-bdbb-2c775b573883" value="dc953834-0683-4609-bdbb-2c775b573883">
+        
+        <label>Deployment ID du Modèle ML</label>
+        <input type="text" id="config-deployment-id" class="config-input" placeholder="hckt23 (ID du déploiement du modèle entraîné)">
+        <small style="color: #666; font-size: 12px; display: block; margin-top: 5px; margin-bottom: 15px;">
+          💡 Si configuré, le système utilisera ce modèle déployé pour les prédictions d'énergie au lieu du modèle local
+        </small>
+        
+        <button class="btn btn-primary" id="btn-save-config" style="margin-top: 15px;">💾 Sauvegarder Configuration</button>
+        <button class="btn" id="btn-test-connection" style="margin-top: 10px; background: #f8f9fa;">🔍 Tester l'Authentification</button>
+        
+        <button class="btn" id="btn-simulate-data" style="margin-top: 15px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+          🎲 Simuler 1 an de données
+        </button>
+      </div>
+
+      <div id="config-status" style="margin-top: 20px;"></div>
+      
+      <div id="annual-prediction" style="margin-top: 30px; display: none;">
+        <div class="config-section">
+          <h3>📊 Prédiction Annuelle Basée sur vos Données</h3>
+          <div id="annual-prediction-content" style="padding: 20px; background: white; border-radius: 8px; margin-top: 15px;">
+            <p style="color: #666; margin-bottom: 15px;">Calcul en cours...</p>
+          </div>
+        </div>
+      </div>
+      
+      <div id="datasets-list" style="margin-top: 20px;"></div>
+    </div>
+    
+    <!-- Toggle pour choisir entre Serveur Local et Watsonx Direct -->
+    <div id="prediction-mode-toggle" style="position: fixed; bottom: 20px; right: 20px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; min-width: 250px;">
+      <div style="margin-bottom: 10px; font-weight: 600; color: #333; font-size: 14px;">🔧 Mode de Prédiction</div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <label style="display: flex; align-items: center; cursor: pointer; flex: 1;">
+          <input type="radio" name="prediction-mode" value="server" id="toggle-server" style="margin-right: 8px;">
+          <span style="font-size: 13px;">🖥️ Serveur Local</span>
+        </label>
+        <label style="display: flex; align-items: center; cursor: pointer; flex: 1;">
+          <input type="radio" name="prediction-mode" value="watsonx" id="toggle-watsonx" checked style="margin-right: 8px;">
+          <span style="font-size: 13px;">☁️ Watsonx Direct</span>
+        </label>
+      </div>
+      <div id="toggle-status" style="margin-top: 10px; padding: 8px; background: #f8f9fa; border-radius: 6px; font-size: 12px; color: #666;">
+        Mode: Watsonx Direct
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+

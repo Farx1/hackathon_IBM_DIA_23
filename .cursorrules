@@ -1,0 +1,111 @@
+# Cursor AI Rules - Track Sustainability Extension
+
+## Contexte du projet
+
+Ce projet est une **extension Chrome** (Manifest V3) pour estimer et visualiser l'impact CO₂ des requêtes LLM.
+
+## Structure importante
+
+- `client/public/` : Fichiers de l'extension Chrome (NE PAS TOUCHER aux autres dossiers pour l'extension)
+- `manifest.json` : Configuration de l'extension
+- `popup.html/js` : Interface utilisateur
+- `content.js` : Détection des conversations LLM
+- `background.js` : Service worker avec calculs
+- `predictor.js` : Modèle ML simplifié
+- `data/` : Données du modèle et facteurs CO₂
+
+## Technologies utilisées
+
+- **JavaScript vanilla** (pas de framework) pour l'extension
+- **Chrome Extension API** (Storage, Runtime, Tabs)
+- **Machine Learning** : Modèle Gradient Boosting (R²=0.984)
+- **Manifest V3** (pas V2)
+
+## Règles de développement
+
+### Pour l'extension Chrome
+
+1. **Pas d'imports ES6** : Utiliser uniquement du JavaScript vanilla
+2. **Pas de npm modules** : Tout doit fonctionner sans build
+3. **Async/await** : Préférer async/await aux callbacks
+4. **Chrome API** : Utiliser chrome.storage.local, chrome.runtime, etc.
+5. **Permissions** : Minimiser les permissions demandées
+
+### Style de code
+
+1. **Commentaires** : Ajouter des commentaires explicatifs en français
+2. **Nommage** : camelCase pour les variables, PascalCase pour les classes
+3. **Fonctions** : Une fonction = une responsabilité
+4. **Erreurs** : Toujours gérer les erreurs avec try/catch
+5. **Console** : Utiliser console.log avec des emojis pour le debug (🌱, 📊, ⚠️, ❌)
+
+### Bonnes pratiques
+
+1. **Storage** : Toujours vérifier que les données existent avant de les lire
+2. **Messages** : Utiliser chrome.runtime.sendMessage pour communiquer entre scripts
+3. **Détection** : Utiliser des sélecteurs CSS robustes qui ne cassent pas facilement
+4. **Performance** : Éviter les boucles infinies et les requêtes excessives
+5. **Sécurité** : Ne jamais stocker de données sensibles
+
+## Commandes utiles
+
+```bash
+# Voir les instructions d'installation
+npm run extension:install
+
+# Créer le package ZIP
+npm run extension:build
+
+# Surveiller les changements
+npm run extension:watch
+```
+
+## Débuggage
+
+- **Popup** : Clic droit sur l'icône → Inspecter la vue popup
+- **Content script** : F12 sur la page LLM → Console
+- **Background** : chrome://extensions/ → Service worker
+
+## Fichiers à ne pas modifier
+
+- `package.json` (sauf pour ajouter des scripts)
+- `dist/` (généré automatiquement)
+- `node_modules/` (si présent)
+
+## Fichiers à modifier pour l'extension
+
+- `client/public/popup.html` : Interface
+- `client/public/popup.js` : Logique du popup
+- `client/public/content.js` : Détection
+- `client/public/background.js` : Calculs
+- `client/public/data/carbon_intensity.json` : Ajouter des pays
+
+## Modèle ML
+
+- **Performance** : R² = 0.984
+- **Features** : response_token_length (47%), total_tokens (26%), model_size (20%)
+- **Formule** : Énergie = Base + (Prompt × 0.3 × E/token) + (Response × 1.0 × E/token)
+
+## Facteurs CO₂
+
+- Suède : 13 gCO₂/kWh (le plus propre)
+- France : 52 gCO₂/kWh
+- Mondial : 480 gCO₂/kWh
+- Chine : 581 gCO₂/kWh
+- Afrique du Sud : 750 gCO₂/kWh (le plus carboné)
+
+## Aide de l'IA
+
+Quand tu aides sur ce projet :
+1. Toujours vérifier que le code est compatible Chrome Extension
+2. Utiliser JavaScript vanilla (pas de JSX, pas de TypeScript dans l'extension)
+3. Tester mentalement que le code fonctionne sans build
+4. Suggérer des améliorations de performance
+5. Expliquer clairement les changements
+
+## Documentation
+
+- README.md : Documentation complète
+- INSTALLATION.md : Guide d'installation
+- CURSOR_GUIDE.md : Guide pour Cursor
+- EXECUTIVE_SUMMARY.md : Résumé du projet

@@ -58,3 +58,220 @@ git push origin feature/my-awesome-feature
 
 Good luck during the IBM Hackathon — build, learn, and most importantly: **have fun!** 🚀
 
+---
+
+# 🌱 Track Sustainability - CO₂ Impact Tracker for LLMs
+
+Extension Chrome pour estimer et visualiser l'impact carbone (CO₂) de vos requêtes aux modèles de langage (LLM).
+
+## 📋 Description
+
+Track Sustainability analyse en temps réel vos conversations avec ChatGPT, Claude, Gemini et autres LLMs pour estimer la consommation énergétique et les émissions de CO₂ associées. L'extension utilise un modèle de machine learning entraîné sur des données réelles de consommation énergétique de modèles open-source, avec intégration Watsonx pour des prédictions avancées.
+
+### ✨ Fonctionnalités
+
+- **Détection automatique** des conversations sur ChatGPT, Claude, Gemini
+- **Estimation précise** de la consommation énergétique basée sur un modèle ML (R² = 0.874)
+- **Intégration Watsonx** pour des prédictions avec modèle déployé
+- **Conversion en CO₂** avec choix du mix énergétique par pays (30+ pays disponibles)
+- **Tracking cumulatif** de toutes vos conversations
+- **Dashboard complet** avec graphiques, prédictions long terme et comparaisons
+- **Équivalences concrètes** (km en voiture, emails, arbres nécessaires)
+- **Interface intuitive** avec statistiques en temps réel
+
+### 🎯 Modèles supportés
+
+L'extension reconnaît automatiquement les modèles suivants :
+
+- **OpenAI** : GPT-4, GPT-4 Turbo, GPT-4o, GPT-3.5 Turbo
+- **Anthropic** : Claude 3 Opus, Claude 3.5 Sonnet, Claude 3 Haiku
+- **Google** : Gemini Pro, Gemini 1.5 Pro, Gemini 1.5 Flash
+- **Meta** : LLaMA 2, LLaMA 3 (7B, 8B, 70B)
+- **Mistral** : Mistral 7B, Mixtral 8x7B
+- **Autres** : CodeLlama, et plus...
+
+## 🚀 Installation
+
+### Option 1 : Installation en mode développeur (recommandé)
+
+1. **Télécharger l'extension**
+   ```bash
+   # Cloner le repository
+   git clone https://github.com/Farx1/hackathon_IBM_DIA_23.git
+   cd hackathon_IBM_DIA_23/track-sustainability-extension/client/public
+   ```
+
+2. **Ouvrir Chrome**
+   - Aller dans `chrome://extensions/`
+   - Activer le **Mode développeur** (en haut à droite)
+
+3. **Charger l'extension**
+   - Cliquer sur **"Charger l'extension non empaquetée"**
+   - Sélectionner le dossier `client/public`
+
+4. **Vérifier l'installation**
+   - L'icône 🌱 devrait apparaître dans la barre d'outils
+   - Cliquer dessus pour ouvrir le popup
+
+### Option 2 : Package Chrome (.zip)
+
+```bash
+# Créer un package
+cd track-sustainability-extension/client/public
+zip -r track-sustainability.zip . -x "*.git*" -x "node_modules/*"
+```
+
+Puis charger le fichier .zip dans Chrome.
+
+## 📊 Utilisation
+
+1. **Ouvrir une plateforme LLM**
+   - Aller sur chat.openai.com, claude.ai ou gemini.google.com
+
+2. **Commencer une conversation**
+   - L'extension détecte automatiquement vos échanges
+   - Le statut passe à "✅ Conversation active détectée"
+
+3. **Consulter les statistiques**
+   - Cliquer sur l'icône de l'extension pour voir le popup
+   - Ouvrir le dashboard pour des statistiques détaillées
+
+4. **Configurer Watsonx (optionnel)**
+   - Ouvrir le dashboard
+   - Aller dans l'onglet "Configuration"
+   - Entrer votre API Key, Project ID et Deployment ID Watsonx
+   - Cliquer sur "Tester l'Authentification"
+   - Les prédictions utiliseront automatiquement le modèle Watsonx
+
+## 🔬 Méthodologie
+
+### Modèle de prédiction
+
+L'extension utilise plusieurs méthodes de prédiction :
+
+1. **Modèle Watsonx** (si configuré) : Modèle ML déployé sur IBM Watsonx
+2. **Modèle Random Forest local** : Modèle entraîné localement
+3. **Modèle simplifié** : Estimation basée sur les tokens et le modèle
+
+Le modèle est entraîné sur le dataset [LLM Inference Energy Consumption](https://huggingface.co/datasets/ejhusom/llm-inference-energy-consumption) :
+- **78,728 mesures** réelles de consommation énergétique
+- **15 configurations** (modèles × hardware)
+- **Performance** : R² = 0.984, MAE = 0.000014 J
+
+### Formule de calcul
+
+```
+Énergie (J) = Énergie_base + (Tokens_prompt × 0.3 × E/token) + (Tokens_réponse × 1.0 × E/token)
+
+CO₂ (g) = (Énergie_J / 3,600,000) × Intensité_carbone (gCO₂/kWh)
+```
+
+### Facteurs d'émission
+
+Les facteurs d'émission CO₂ proviennent de sources officielles :
+- **Ember Global Electricity Review 2024**
+- **IEA (International Energy Agency)**
+- **Our World in Data**
+
+Exemples d'intensité carbone :
+- 🇸🇪 Suède : 13 gCO₂/kWh (nucléaire + hydro)
+- 🇫🇷 France : 52 gCO₂/kWh (nucléaire dominant)
+- 🇺🇸 États-Unis : 369 gCO₂/kWh
+- 🌍 Moyenne mondiale : 480 gCO₂/kWh
+- 🇨🇳 Chine : 581 gCO₂/kWh
+- 🇵🇱 Pologne : 652 gCO₂/kWh (charbon dominant)
+
+## 🛠️ Architecture technique
+
+```
+track-sustainability-extension/
+├── client/
+│   ├── public/                    # Extension Chrome
+│   │   ├── manifest.json          # Configuration Chrome
+│   │   ├── popup.html/js          # Interface utilisateur
+│   │   ├── dashboard.html/js      # Dashboard complet
+│   │   ├── content.js             # Détection des conversations
+│   │   ├── background.js          # Service worker (calculs)
+│   │   ├── predictor.js           # Modèle de prédiction
+│   │   ├── watsonx-service.js     # Intégration Watsonx
+│   │   ├── data/
+│   │   │   ├── model_simplified.json      # Modèle ML
+│   │   │   └── carbon_intensity.json     # Facteurs CO₂
+│   │   └── icon-*.png             # Icônes
+│   └── src/                       # Code source React (optionnel)
+├── server/
+│   └── index.ts                   # Serveur Express pour proxy Watsonx
+├── shared/
+│   └── const.ts                   # Constantes partagées
+├── docs/                          # Documentation et graphiques
+└── certification/                 # Certifications (à ajouter)
+```
+
+### Technologies utilisées
+
+- **Manifest V3** (Chrome Extensions)
+- **Machine Learning** : Gradient Boosting, Random Forest
+- **IBM Watsonx** : Modèles ML déployés
+- **Storage API** : Chrome Storage Local
+- **Content Scripts** : Détection DOM
+- **Service Workers** : Calculs en arrière-plan
+- **Chart.js** : Visualisations de données
+- **Express.js** : Serveur proxy pour Watsonx
+
+## 📝 Développement
+
+### Prérequis
+
+- Node.js 18+
+- Chrome/Chromium
+- Python 3.11+ (pour l'entraînement du modèle, optionnel)
+- IBM Watsonx Account (pour les prédictions avancées, optionnel)
+
+### Installation des dépendances
+
+```bash
+cd track-sustainability-extension
+pnpm install
+```
+
+### Lancer le serveur (optionnel)
+
+```bash
+cd server
+npm install
+npm run dev
+```
+
+## 📚 Références
+
+1. **Dataset** : [LLM Inference Energy Consumption](https://huggingface.co/datasets/ejhusom/llm-inference-energy-consumption)
+2. **Paper** : "The Price of Prompting: Profiling Energy Use in Large Language Models Inference" (2024)
+3. **Ember** : [Global Electricity Review 2024](https://ember-energy.org/latest-insights/global-electricity-review-2024/)
+4. **IEA** : [Emissions Factors 2024](https://www.iea.org/data-and-statistics/data-product/emissions-factors-2024)
+5. **IBM Watsonx** : [Documentation Watsonx](https://www.ibm.com/products/watsonx-ai)
+
+## 🤝 Contribution
+
+Les contributions sont les bienvenues ! Pour contribuer :
+
+1. Fork le projet
+2. Créer une branche (`git checkout -b feature/AmazingFeature`)
+3. Commit les changements (`git commit -m 'Add AmazingFeature'`)
+4. Push vers la branche (`git push origin feature/AmazingFeature`)
+5. Ouvrir une Pull Request
+
+## 📄 Licence
+
+Ce projet est sous licence **CC BY-SA 4.0** (Creative Commons Attribution-ShareAlike 4.0).
+
+Le dataset utilisé est également sous licence CC BY-SA 4.0.
+
+## ⚠️ Limitations
+
+- **Estimations approximatives** : Les calculs sont basés sur des modèles statistiques et peuvent varier selon le hardware réel
+- **Détection heuristique** : L'extraction des messages peut ne pas fonctionner si les plateformes changent leur structure DOM
+- **Modèles propriétaires** : Les estimations pour GPT-4, Claude et Gemini sont extrapolées depuis des modèles open-source similaires
+
+---
+
+**Fait avec 💚 pour un futur plus durable**

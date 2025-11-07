@@ -1,0 +1,68 @@
+{
+  "manifest_version": 3,
+  "name": "Track Sustainability - CO₂ Impact Tracker for LLMs",
+  "version": "1.0.0",
+  "description": "Estimez et visualisez l'impact carbone (CO₂) de vos requêtes aux modèles de langage (LLM)",
+  "icons": {
+    "16": "icon-16.png",
+    "48": "icon-48.png",
+    "128": "icon-128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon-16.png",
+      "48": "icon-48.png",
+      "128": "icon-128.png"
+    }
+  },
+  "options_page": "dashboard.html",
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' https://*.ml.cloud.ibm.com https://*.dataplatform.cloud.ibm.com https://*.api.dataplatform.cloud.ibm.com https://iam.cloud.ibm.com http://localhost:3000"
+  },
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://chatgpt.com/*",
+    "https://claude.ai/*",
+    "https://gemini.google.com/*",
+    "https://*.anthropic.com/*",
+    "https://api.openai.com/*",
+    "https://generativelanguage.googleapis.com/*",
+    "https://*.ml.cloud.ibm.com/*",
+    "https://us-south.ml.cloud.ibm.com/*",
+    "https://eu-de.ml.cloud.ibm.com/*",
+    "https://jp-tok.ml.cloud.ibm.com/*",
+    "https://*.dataplatform.cloud.ibm.com/*",
+    "https://api.us-south.dataplatform.cloud.ibm.com/*",
+    "https://api.eu-de.dataplatform.cloud.ibm.com/*",
+    "https://api.eu-gb.dataplatform.cloud.ibm.com/*",
+    "https://api.jp-tok.dataplatform.cloud.ibm.com/*",
+    "https://iam.cloud.ibm.com/*",
+    "http://localhost:3000/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://claude.ai/*",
+        "https://gemini.google.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["models/*", "data/*", "network-interceptor.js", "watsonx-service.js", "watsonx-config.js", "random-forest-predictor.js", "server-predictor.js", "init-scripts.js", "load-scripts.js", "dashboard.html", "dashboard-enhancements.js", "chart.umd.min.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
