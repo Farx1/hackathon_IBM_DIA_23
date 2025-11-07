@@ -1,65 +1,3 @@
-# Welcome to the IBM Hackathon! 🎉
-
-This repository serves as a template to help you get started quickly.  
-Follow the project structure, fork the repo, and clone it locally to begin.
-
----
-
-## 1. Fork the Repository
-
-1. Click **Fork** (top right) to create a copy under your own account
-2. Make sure the fork is **public**  
-   If it isn't, go to:  
-   **Settings → Change repository visibility → Public**
-
----
-
-## 2. Clone the Repository
-
-Once you have forked the repository:
-
-```bash
-# Clone your fork (replace <your-user> and <repo> with your info)
-git clone https://github.com/<your-user>/<repo>.git
-
-# Move into the project folder
-cd <repo>
-```
-
----
-
-## 3. Contribute
-
-### Create a new branch for each feature or fix:
-
-```bash
-git checkout -b feature/my-awesome-feature
-```
-
-### Commit your changes:
-
-```bash
-git add .
-git commit -m "Add: my awesome feature"
-git push origin feature/my-awesome-feature
-```
-
----
-
-## 4. Quick Rules
-
-✅ Keep your fork **public** during the hackathon  
-✅ Follow the **template's structure**  
-❓ For any questions: contact **kryptosphere@devinci.fr**
-
----
-
-## 5. Have Fun and Good Luck!
-
-Good luck during the IBM Hackathon — build, learn, and most importantly: **have fun!** 🚀
-
----
-
 # 🌱 Track Sustainability - CO₂ Impact Tracker for LLMs
 
 Extension Chrome pour estimer et visualiser l'impact carbone (CO₂) de vos requêtes aux modèles de langage (LLM).
@@ -123,6 +61,35 @@ zip -r track-sustainability.zip . -x "*.git*" -x "node_modules/*"
 
 Puis charger le fichier .zip dans Chrome.
 
+## 📊 Ouvrir le Dashboard
+
+### Méthode 1 : Depuis l'Extension (Recommandé)
+
+1. **Ouvrir Chrome**
+2. **Cliquer sur l'icône de l'extension** 🌱 dans la barre d'outils
+3. **Dans le popup**, cliquer sur le bouton **"📊 Ouvrir le Dashboard Analytics"**
+4. Le dashboard s'ouvre dans un nouvel onglet
+
+### Méthode 2 : Depuis la Page des Extensions
+
+1. Aller dans `chrome://extensions/`
+2. Trouver **"Track Sustainability - CO₂ Impact Tracker for LLMs"**
+3. Cliquer sur **"Options"** ou **"Détails"** → **"Options de l'extension"**
+4. Le dashboard s'ouvre
+
+### Méthode 3 : URL Directe
+
+1. Ouvrir un nouvel onglet dans Chrome
+2. Taper dans la barre d'adresse :
+   ```
+   chrome-extension://[EXTENSION_ID]/dashboard.html
+   ```
+   
+   Pour trouver l'ID de l'extension :
+   - Aller dans `chrome://extensions/`
+   - Activer le "Mode développeur"
+   - L'ID s'affiche sous le nom de l'extension
+
 ## 📊 Utilisation
 
 1. **Ouvrir une plateforme LLM**
@@ -136,7 +103,7 @@ Puis charger le fichier .zip dans Chrome.
    - Cliquer sur l'icône de l'extension pour voir le popup
    - Ouvrir le dashboard pour des statistiques détaillées
 
-4. **Configurer Watsonx (optionnel)**
+4. **Configurer Watsonx pour des prédictions avancées**
    - Ouvrir le dashboard
    - Aller dans l'onglet "Configuration"
    - Entrer votre API Key, Project ID et Deployment ID Watsonx
@@ -198,7 +165,6 @@ track-sustainability-extension/
 │   │   │   ├── model_simplified.json      # Modèle ML
 │   │   │   └── carbon_intensity.json     # Facteurs CO₂
 │   │   └── icon-*.png             # Icônes
-│   └── src/                       # Code source React (optionnel)
 ├── server/
 │   └── index.ts                   # Serveur Express pour proxy Watsonx
 ├── shared/
@@ -224,8 +190,8 @@ track-sustainability-extension/
 
 - Node.js 18+
 - Chrome/Chromium
-- Python 3.11+ (pour l'entraînement du modèle, optionnel)
-- IBM Watsonx Account (pour les prédictions avancées, optionnel)
+- Python 3.11+ (pour l'entraînement du modèle)
+- IBM Watsonx Account (pour les prédictions avancées)
 
 ### Installation des dépendances
 
@@ -234,7 +200,7 @@ cd track-sustainability-extension
 pnpm install
 ```
 
-### Lancer le serveur (optionnel)
+### Lancer le serveur
 
 ```bash
 cd server
@@ -242,10 +208,12 @@ npm install
 npm run dev
 ```
 
+Le serveur permet d'utiliser Watsonx de manière sécurisée en gardant les credentials côté serveur.
+
 ## 📚 Références
 
 1. **Dataset** : [LLM Inference Energy Consumption](https://huggingface.co/datasets/ejhusom/llm-inference-energy-consumption)
-2. **Paper** : "The Price of Prompting: Profiling Energy Use in Large Language Models Inference" (2024)
+2. **Paper** : "The Price of Prompting: Profiling Energy Use in Large Language Models Inference (MELODI)" (2024)
 3. **Ember** : [Global Electricity Review 2024](https://ember-energy.org/latest-insights/global-electricity-review-2024/)
 4. **IEA** : [Emissions Factors 2024](https://www.iea.org/data-and-statistics/data-product/emissions-factors-2024)
 5. **IBM Watsonx** : [Documentation Watsonx](https://www.ibm.com/products/watsonx-ai)
@@ -260,17 +228,27 @@ Les contributions sont les bienvenues ! Pour contribuer :
 4. Push vers la branche (`git push origin feature/AmazingFeature`)
 5. Ouvrir une Pull Request
 
+## 👥 Équipe
+
+Ce projet a été développé par :
+
+<div align="center">
+
+**🌱 Track Sustainability Team**
+
+| 👨‍💻 | 👨‍💻 | 👨‍💻 | 👨‍💻 | 👩‍💻 |
+|:---:|:---:|:---:|:---:|:---:|
+| **Jules Sayad-Barth** | **Hugo Robin** | **Leo Demelle** | **Ghadi Salameh** | **Maria Katibi** |
+
+</div>
+
+---
+
 ## 📄 Licence
 
 Ce projet est sous licence **CC BY-SA 4.0** (Creative Commons Attribution-ShareAlike 4.0).
 
 Le dataset utilisé est également sous licence CC BY-SA 4.0.
-
-## ⚠️ Limitations
-
-- **Estimations approximatives** : Les calculs sont basés sur des modèles statistiques et peuvent varier selon le hardware réel
-- **Détection heuristique** : L'extraction des messages peut ne pas fonctionner si les plateformes changent leur structure DOM
-- **Modèles propriétaires** : Les estimations pour GPT-4, Claude et Gemini sont extrapolées depuis des modèles open-source similaires
 
 ---
 
