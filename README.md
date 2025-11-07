@@ -240,7 +240,7 @@ Ce projet a été développé par :
 
 | 👨‍💻 | 👨‍💻 | 👨‍💻 | 👨‍💻 | 👩‍💻 |
 |:---:|:---:|:---:|:---:|:---:|
-| **Jules Sayad-Barth** | **Hugo Robin** | **Leo Demelle** | **Ghadi Salameh** | **Maria Katibi** |
+| **Jules Sayad-Barth** | **Hugo Robin** | **Leo Demelle** | **Ghadi Salameh** | **Maria Katibi** | **Hector Mell Mariolle** |
 
 </div>
 
