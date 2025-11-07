@@ -108,6 +108,7 @@ Puis charger le fichier .zip dans Chrome.
    - Entrer votre API Key, Project ID et Deployment ID Watsonx
    - Cliquer sur "Tester l'Authentification"
    - Les prédictions utiliseront automatiquement le modèle Watsonx
+   - Découvrez les fonctions supplémentaires qui permettent une meilleur utilisation de norte projet !
 
 ## 🔬 Méthodologie
 
