@@ -252,6 +252,4 @@ Ce projet est sous licence **CC BY-SA 4.0** (Creative Commons Attribution-ShareA
 
 Le dataset utilisé est également sous licence CC BY-SA 4.0.
 
----
 
-**Fait avec 💚 pour un futur plus durable**
